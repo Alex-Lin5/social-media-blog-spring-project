@@ -1,7 +1,10 @@
 package com.example.controller;
 
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.List;
 
+import org.jboss.logging.Messages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.entity.Account;
@@ -27,10 +31,13 @@ import com.example.service.MessageService;
  */
 @RestController
 public class SocialMediaController {
-    @Autowired
     AccountService accountService;
-    @Autowired
     MessageService messageService;
+    @Autowired
+    public SocialMediaController(AccountService accountService, MessageService messageService){
+        this.accountService = accountService;
+        this.messageService = messageService;
+    }
 
     @PostMapping(value = "/register")
     public ResponseEntity<Account> postAccountRegistration(@RequestBody Account a){
@@ -44,18 +51,33 @@ public class SocialMediaController {
         return ResponseEntity.status(HttpStatus.OK).body(optionalAccount.get());
 
     }
+
     @PostMapping(value = "/login")
-    public void postAccountLogin(Account a){
-
+    public ResponseEntity<Account> postAccountLogin(@RequestBody Account a){
+        System.out.println("Handling login, input "+a);
+        Account account = accountService.psProcessLogin(a);
+        if(account == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(account);
     }
+
     @PostMapping(value = "/messages")
-    public void postNewMessage(@RequestBody Message m){
-
+    public ResponseEntity<Message> postNewMessage(@RequestBody Message m){
+        Message message = messageService.psNewMessage(m);
+        if(message == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
+
     @GetMapping("/messages")
-    public void getAllMessages(){
-
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Message> getAllMessages(){
+        List<Message> messages = messageService.sGetAllMessages();
+        return ResponseEntity.status(HttpStatus.OK).Body(messages);
     }
+
     // @GetMapping(value = "cats", params = {"term"})
     @GetMapping("/messages/{message_id}")
     public void getMessageById(@PathVariable Integer message_id){

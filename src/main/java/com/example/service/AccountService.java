@@ -11,20 +11,15 @@ import com.example.repository.AccountRepository;
 
 @Service
 public class AccountService {
-    @Autowired
     AccountRepository accountRepository;
-    // @Autowired
-    // public AccountService(AccountRepository accountRepository){
-    //     this.accountRepository = accountRepository;
-    // }
-    // public AccountService(){
-    //     // accountRepository = new AccountRepository();
-    // }
+    @Autowired
+    public AccountService(AccountRepository accountRepository){
+        this.accountRepository = accountRepository;
+    }
     private Optional<Account> persistAccount(Account account){
         Optional<Account> optionalAccount = Optional.of(accountRepository.save(account));
         return optionalAccount;
     }
-    
     public Optional<Account> psAccountRegistration(Account a){
         if(a.getPassword().length()<4){
             System.out.println("password length should be at least 4 chcaracters long."+ a);
@@ -38,25 +33,39 @@ public class AccountService {
             System.out.println("Account Repository is null.");
             return null;
         }
-        // Account optionalAccount = accountRepository.findByUsername(a.getUsername());
         Optional<Account> optionalAccount = accountRepository.findByUsername(a.getUsername());
         if(optionalAccount.isPresent()){
             Account account = optionalAccount.get();
             account.setAccount_id(null);
             System.out.println("Duplicated username."+ a);
-            // throw new SQLException("Duplicated username."+a);
-            // return a;
             return Optional.of(account);
         } else{
-            // int account_id = accountRepository.insertAccount(a.getUsername(), a.getPassword());
-            // Account account = new Account(
-            //     account_id,
-            //     a.getUsername(),
-            //     a.getPassword());
-            // return account;
             return persistAccount(a);
-            // return accountRepository.save(a);
         }
-        // return null;
     }
+
+    public Account psProcessLogin(Account a){
+        Optional<Account> optionalAccount = accountRepository.findByUsername(a.getUsername());
+        System.out.println("Processing login now... Input account "+a);
+        if(optionalAccount.isEmpty()){
+            System.out.println("Username cannot find.");
+            return null;
+        }
+        String databasePW = optionalAccount.get().getPassword();
+        String inputPW = a.getPassword();
+        if(databasePW.equals(inputPW)){
+            Account account = new Account(
+                optionalAccount.get().getAccount_id(),
+                a.getUsername(),
+                a.getPassword()
+            );
+            System.out.println("Login verified. "+account);
+            return account;
+        } else{
+            System.out.println("Password does not match."+databasePW+' '+inputPW);
+            return null;
+        }
+
+    }
+
 }
