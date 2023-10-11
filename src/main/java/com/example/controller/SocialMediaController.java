@@ -73,27 +73,47 @@ public class SocialMediaController {
 
     @GetMapping("/messages")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Message> getAllMessages(){
+    public ResponseEntity<List<Message>> getAllMessages(){
         List<Message> messages = messageService.sGetAllMessages();
-        return ResponseEntity.status(HttpStatus.OK).Body(messages);
+        return ResponseEntity.status(HttpStatus.OK).body(messages);
     }
 
     // @GetMapping(value = "cats", params = {"term"})
     @GetMapping("/messages/{message_id}")
-    public void getMessageById(@PathVariable Integer message_id){
+    public ResponseEntity<Message> getMessageById(@PathVariable Integer message_id){
+        Message message = messageService.sGetMessageById(message_id);
+        if(message == null){
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(message);
 
     }
+
     @DeleteMapping(value = "/messages/{message_id}")
-    public void deleteMessageById(@PathVariable Integer message_id){
+    public ResponseEntity<Integer> deleteMessageById(@PathVariable("message_id") Integer message_id){
+        System.out.println("Handling message delete, "+ message_id);
+        Message message = messageService.sDeleteMessageById(message_id);
+        if(message == null){
+            return ResponseEntity.status(HttpStatus.OK).body(0);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(1);
 
     }
     @PatchMapping(value = "/messages/{message_id}")
-    public void patchMessageById(@PathVariable Integer message_id){
+    public ResponseEntity<Integer> patchMessageById(@PathVariable Integer message_id, @RequestBody Message m){
+        m.setMessage_id(message_id);
+        Message message = messageService.sPatchMessage(m);
+        if(message == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(1);
 
     }
-    @GetMapping(value = "/accounts/{account_id}")
-    public void getMessagesByAccountId(@PathVariable Integer account_id){
 
+    @GetMapping(value = "/accounts/{account_id}/messages")
+    public ResponseEntity<List<Message>> getMessagesByAccountId(@PathVariable Integer account_id){
+        List<Message> messages = messageService.sGetMessagesByAccount(account_id);
+        return ResponseEntity.status(HttpStatus.OK).body(messages);
     }
 
 }
